@@ -1,123 +1,149 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tube Link - No Error</title>
+    <title>Tube Link - Final Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            background-color: #0d0d0d;
-            color: #fff;
-        }
-
-        .video-16-9 {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 15px;
-            background: #000;
-        }
-
-        .video-16-9 iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .v-card:hover {
-            transform: translateY(-5px);
-            transition: 0.3s;
-        }
+        body { background-color: #0a0a0a; color: #fff; scroll-behavior: smooth; }
+        .video-16-9 { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 15px; overflow: hidden; background: #000; }
+        .video-16-9 iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .purple-glow:focus-within { border-color: #9333ea; box-shadow: 0 0 15px rgba(147, 51, 234, 0.2); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 10px; }
     </style>
 </head>
-
 <body>
 
-    <nav
-        class="fixed top-0 w-full bg-[#0d0d0d]/90 backdrop-blur-lg border-b border-zinc-800 flex items-center justify-between px-6 py-3 z-50">
+    <nav class="fixed top-0 w-full bg-[#0a0a0a]/90 backdrop-blur-lg border-b border-zinc-800 flex items-center justify-between px-6 py-3 z-50">
         <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-            <i class="fab fa-youtube text-3xl text-purple-500"></i>
-            <span class="text-xl font-bold">Tube Link</span>
+            <i class="fab fa-youtube text-3xl text-purple-600"></i>
+            <span class="text-xl font-bold tracking-tighter">Tube Link</span>
         </div>
 
-        <div class="flex-1 max-w-[500px] mx-4">
-            <div
-                class="flex bg-zinc-900 rounded-full border border-zinc-700 overflow-hidden focus-within:border-purple-500">
-                <input id="searchInput" type="text" placeholder="Tìm video Hiha, Skibidi..."
-                    class="w-full bg-transparent py-2 px-5 outline-none text-sm">
-                <button onclick="handleSearch()" class="px-6 hover:bg-purple-600 transition-colors"><i
-                        class="fas fa-search"></i></button>
+        <div class="flex-1 max-w-[500px] mx-4 flex gap-2">
+            <div class="flex w-full bg-zinc-900 rounded-full border border-zinc-700 overflow-hidden purple-glow">
+                <input id="searchInput" type="text" placeholder="Tìm kiếm hoặc dán link video..." class="w-full bg-transparent py-2 px-5 outline-none text-sm">
+                <button onclick="handleSearch()" class="px-6 hover:bg-purple-600 transition-colors"><i class="fas fa-search"></i></button>
             </div>
         </div>
 
-        <div class="bg-purple-600 px-4 py-2 rounded-full text-xs font-bold cursor-pointer">TÀI KHOẢN</div>
+        <div class="flex gap-4 items-center">
+            <button onclick="clearHistory()" class="text-[10px] uppercase font-bold text-zinc-500 hover:text-red-500 transition-colors">Xóa lịch sử</button>
+            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold shadow-lg shadow-purple-500/20">TL</div>
+        </div>
     </nav>
 
-    <main class="pt-24 px-4 max-w-[1200px] mx-auto">
-        <div id="playerSection" class="hidden mb-10">
-            <div class="max-w-[900px] mx-auto">
-                <div class="video-16-9 border-2 border-purple-500/20">
-                    <iframe id="mainIframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+    <main class="pt-24 px-4 max-w-[1400px] mx-auto pb-20">
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <div class="flex-1">
+                <div id="playerSection" class="hidden mb-10">
+                    <div class="video-16-9 shadow-2xl shadow-purple-900/40 border border-purple-500/20">
+                        <iframe id="mainIframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                    </div>
+                    <h1 id="vTitle" class="text-2xl font-bold mt-5 text-purple-400 leading-tight"></h1>
+                    <div class="flex items-center gap-2 mt-2 text-zinc-500 text-sm">
+                        <i class="fas fa-shield-alt text-green-500"></i>
+                        <span>Chế độ an toàn: youtube-nocookie.com</span>
+                    </div>
                 </div>
-                <h1 id="vTitle" class="text-xl font-bold mt-4 text-purple-400"></h1>
-                <p class="text-zinc-500 text-xs mt-1 italic">Đã đồng bộ hóa nguồn phát an toàn - Không lỗi Playback</p>
-            </div>
-        </div>
 
-        <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-20 text-zinc-600">
-                <i class="fas fa-sync fa-spin text-2xl mb-2"></i>
-                <p>Đang tìm video mới cho bạn...</p>
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-search-plus text-purple-500"></i> Kết quả tìm kiếm
+                </h2>
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+            </div>
+
+            <div class="w-full lg:w-80">
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-purple-500 border-b border-zinc-800 pb-2">
+                    <i class="fas fa-history"></i> Lịch sử xem
+                </h2>
+                <div id="historyList" class="space-y-4 max-h-[800px] overflow-y-auto pr-2">
+                    </div>
             </div>
         </div>
     </main>
 
     <script>
-        const API_KEY = 'AIzaSyAhTnNe0-gj2Cua6e08JgbKPcXLsqM-tj0'; // API của bạn
+        // API Key của bạn
+        const API_KEY = 'AIzaSyAhTnNe0-gj2Cua6e08JgbKPcXLsqM-tj0';
+        let history = JSON.parse(localStorage.getItem('tubeLinkHistory')) || [];
 
         async function handleSearch() {
             const q = document.getElementById('searchInput').value.trim();
-            if (!q) return;
-
+            if(!q) return;
+            
             const id = extractID(q);
-            if (id) {
-                playNow(id, "Video từ link bạn dán");
+            if(id) {
+                playNow(id, "Video từ link dán", `https://img.youtube.com/vi/${id}/hqdefault.jpg`);
             } else {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`;
-                const res = await fetch(url);
+                const res = await fetch(`https://www.googleapis.com/googleapis/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`);
                 const data = await res.json();
-                render(data.items);
+                renderResults(data.items);
             }
         }
 
-        function render(items) {
+        function renderResults(items) {
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
             items.forEach(item => {
+                const id = item.id.videoId;
+                const sn = item.snippet;
                 grid.innerHTML += `
-                    <div class="v-card cursor-pointer group" onclick="playNow('${item.id.videoId}', '${item.snippet.title.replace(/'/g, "")}')">
-                        <img src="${item.snippet.thumbnails.high.url}" class="rounded-xl aspect-video object-cover mb-2 border border-zinc-800">
-                        <h3 class="text-sm font-bold line-clamp-2 group-hover:text-purple-400">${item.snippet.title}</h3>
-                        <p class="text-[10px] text-zinc-500 mt-1 uppercase">${item.snippet.channelTitle}</p>
+                    <div class="cursor-pointer group bg-zinc-900/30 rounded-xl p-2 hover:bg-zinc-800 transition-all" onclick="playNow('${id}', '${sn.title.replace(/'/g, "")}', '${sn.thumbnails.high.url}')">
+                        <img src="${sn.thumbnails.high.url}" class="rounded-lg aspect-video object-cover mb-3">
+                        <h3 class="text-sm font-bold line-clamp-2 group-hover:text-purple-400">${sn.title}</h3>
                     </div>`;
             });
         }
 
-        function playNow(id, title) {
+        // HÀM PLAYNOW ĐÃ FIX THEO Ý BẠN ✅
+        function playNow(id, title, thumb) {
             document.getElementById('playerSection').classList.remove('hidden');
             document.getElementById('vTitle').innerText = title;
+            
+            // Dùng link fix chuẩn 100% của bạn
+            document.getElementById('mainIframe').src = `https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`;
+            
+            saveToHistory(id, title, thumb);
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
 
-            // DÙNG PROXY EMBED ĐỂ FIX LỖI 153/PLAYBACK ID
-            // Nguồn phát này cực kỳ ổn định và không cần xác thực Origin
-            document.getElementById('mainIframe').src = `https://p.drgnz.club/embed/${id}`;
+        function saveToHistory(id, title, thumb) {
+            history = history.filter(item => item.id !== id);
+            history.unshift({ id, title, thumb });
+            if(history.length > 30) history.pop();
+            localStorage.setItem('tubeLinkHistory', JSON.stringify(history));
+            renderHistory();
+        }
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if(history.length === 0) {
+                list.innerHTML = '<p class="text-zinc-600 text-xs italic text-center">Bạn chưa xem video nào.</p>';
+                return;
+            }
+            list.innerHTML = history.map(item => `
+                <div class="flex gap-3 items-center group bg-zinc-900/40 p-2 rounded-xl border border-transparent hover:border-purple-500/30 cursor-pointer transition-all" onclick="playNow('${item.id}', '${item.title.replace(/'/g, "")}', '${item.thumb}')">
+                    <div class="relative flex-shrink-0">
+                        <img src="${item.thumb}" class="w-20 aspect-video object-cover rounded-lg shadow-md">
+                        <div class="absolute inset-0 bg-purple-600/10 opacity-0 group-hover:opacity-100 rounded-lg"></div>
+                    </div>
+                    <h4 class="text-[11px] font-semibold line-clamp-2 leading-tight text-zinc-300 group-hover:text-white">${item.title}</h4>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if(confirm("Xóa sạch lịch sử xem trên máy này?")) {
+                history = [];
+                localStorage.removeItem('tubeLinkHistory');
+                renderHistory();
+            }
         }
 
         function extractID(url) {
@@ -126,15 +152,13 @@
             return (match && match[1]) ? match[1] : null;
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', e => {
-            if (e.key === 'Enter') handleSearch();
-        });
+        document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') handleSearch(); });
 
         window.onload = () => {
-            document.getElementById('searchInput').value = "Hiha và những người bạn";
+            renderHistory();
+            document.getElementById('searchInput').value = "Minecraft sinh tồn";
             handleSearch();
         };
     </script>
 </body>
-
 </html>
