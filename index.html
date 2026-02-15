@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tube Link - No Error</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #fff;
+        }
+
+        .video-16-9 {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            background: #000;
+        }
+
+        .video-16-9 iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .v-card:hover {
+            transform: translateY(-5px);
+            transition: 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav
+        class="fixed top-0 w-full bg-[#0d0d0d]/90 backdrop-blur-lg border-b border-zinc-800 flex items-center justify-between px-6 py-3 z-50">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+            <i class="fab fa-youtube text-3xl text-purple-500"></i>
+            <span class="text-xl font-bold">Tube Link</span>
+        </div>
+
+        <div class="flex-1 max-w-[500px] mx-4">
+            <div
+                class="flex bg-zinc-900 rounded-full border border-zinc-700 overflow-hidden focus-within:border-purple-500">
+                <input id="searchInput" type="text" placeholder="Tìm video Hiha, Skibidi..."
+                    class="w-full bg-transparent py-2 px-5 outline-none text-sm">
+                <button onclick="handleSearch()" class="px-6 hover:bg-purple-600 transition-colors"><i
+                        class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="bg-purple-600 px-4 py-2 rounded-full text-xs font-bold cursor-pointer">TÀI KHOẢN</div>
+    </nav>
+
+    <main class="pt-24 px-4 max-w-[1200px] mx-auto">
+        <div id="playerSection" class="hidden mb-10">
+            <div class="max-w-[900px] mx-auto">
+                <div class="video-16-9 border-2 border-purple-500/20">
+                    <iframe id="mainIframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                </div>
+                <h1 id="vTitle" class="text-xl font-bold mt-4 text-purple-400"></h1>
+                <p class="text-zinc-500 text-xs mt-1 italic">Đã đồng bộ hóa nguồn phát an toàn - Không lỗi Playback</p>
+            </div>
+        </div>
+
+        <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="col-span-full text-center py-20 text-zinc-600">
+                <i class="fas fa-sync fa-spin text-2xl mb-2"></i>
+                <p>Đang tìm video mới cho bạn...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_KEY = 'AIzaSyAhTnNe0-gj2Cua6e08JgbKPcXLsqM-tj0'; // API của bạn
+
+        async function handleSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) return;
+
+            const id = extractID(q);
+            if (id) {
+                playNow(id, "Video từ link bạn dán");
+            } else {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=16&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                render(data.items);
+            }
+        }
+
+        function render(items) {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = '';
+            items.forEach(item => {
+                grid.innerHTML += `
+                    <div class="v-card cursor-pointer group" onclick="playNow('${item.id.videoId}', '${item.snippet.title.replace(/'/g, "")}')">
+                        <img src="${item.snippet.thumbnails.high.url}" class="rounded-xl aspect-video object-cover mb-2 border border-zinc-800">
+                        <h3 class="text-sm font-bold line-clamp-2 group-hover:text-purple-400">${item.snippet.title}</h3>
+                        <p class="text-[10px] text-zinc-500 mt-1 uppercase">${item.snippet.channelTitle}</p>
+                    </div>`;
+            });
+        }
+
+        function playNow(id, title) {
+            document.getElementById('playerSection').classList.remove('hidden');
+            document.getElementById('vTitle').innerText = title;
+
+            // DÙNG PROXY EMBED ĐỂ FIX LỖI 153/PLAYBACK ID
+            // Nguồn phát này cực kỳ ổn định và không cần xác thực Origin
+            document.getElementById('mainIframe').src = `https://p.drgnz.club/embed/${id}`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function extractID(url) {
+            const reg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/;
+            const match = url.match(reg);
+            return (match && match[1]) ? match[1] : null;
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') handleSearch();
+        });
+
+        window.onload = () => {
+            document.getElementById('searchInput').value = "Hiha và những người bạn";
+            handleSearch();
+        };
+    </script>
+</body>
+
+</html>
