@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tube Link - Final Pro</title>
+    
+    <link rel="icon" href="https://i.ibb.co/rRNhv33x/screenshot.png" type="image/png">
+    <link rel="shortcut icon" href="https://i.ibb.co/rRNhv33x/screenshot.png" type="image/png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <style>
         body { background-color: #0a0a0a; color: #fff; scroll-behavior: smooth; font-family: sans-serif; }
         .video-16-9 { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 15px; overflow: hidden; background: #000; }
@@ -20,7 +25,7 @@
 
     <nav class="fixed top-0 w-full bg-[#0a0a0a]/90 backdrop-blur-lg border-b border-zinc-800 flex items-center justify-between px-6 py-3 z-50">
         <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-            <i class="fab fa-youtube text-3xl text-purple-600"></i>
+            <img src="https://i.ibb.co/rRNhv33x/screenshot.png" class="w-8 h-8 rounded-lg shadow-lg shadow-purple-500/20">
             <span class="text-xl font-bold tracking-tighter text-purple-500">Tube Link</span>
         </div>
 
@@ -41,63 +46,46 @@
 
     <main class="pt-24 px-4 max-w-[1400px] mx-auto pb-20">
         <div class="flex flex-col lg:flex-row gap-8">
-            
             <div class="flex-1">
                 <div id="playerSection" class="hidden mb-10">
                     <div class="video-16-9 shadow-2xl shadow-purple-900/40 border border-zinc-800">
                         <iframe id="mainIframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
                     </div>
                     <h1 id="vTitle" class="text-2xl font-bold mt-5 text-purple-400 leading-tight"></h1>
-                    <div class="flex items-center gap-2 mt-2 text-zinc-500 text-sm">
-                        <i class="fas fa-shield-alt text-green-500"></i>
-                        <span>Chế độ an toàn: youtube-nocookie.com</span>
-                    </div>
                 </div>
 
-                <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-zinc-400">
                     <i class="fas fa-search-plus text-purple-500"></i> Kết quả tìm kiếm
                 </h2>
-                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    </div>
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
             <div class="w-full lg:w-80 border-l border-zinc-800 pl-4">
                 <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-purple-500 border-b border-zinc-800 pb-2">
                     <i class="fas fa-history"></i> Lịch sử xem
                 </h2>
-                <div id="historyList" class="space-y-4 max-h-[800px] overflow-y-auto pr-2">
-                    </div>
+                <div id="historyList" class="space-y-4 max-h-[800px] overflow-y-auto pr-2"></div>
             </div>
         </div>
     </main>
 
     <script>
-        // API Key của bạn - KHÔNG ĐỔI
         const API_KEY = 'AIzaSyAhTnNe0-gj2Cua6e08JgbKPcXLsqM-tj0';
         let history = JSON.parse(localStorage.getItem('tubeLinkHistory')) || [];
 
         async function handleSearch() {
             const q = document.getElementById('searchInput').value.trim();
             if(!q) return;
-            
             const id = extractID(q);
             if(id) {
                 playNow(id, "Video từ link dán", `https://img.youtube.com/vi/${id}/hqdefault.jpg`);
             } else {
-                // ĐÃ SỬA URL Ở ĐÂY: Xóa bớt chữ googleapis dư
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`;
-                
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
-                    if(data.items) {
-                        renderResults(data.items);
-                    } else {
-                        alert("Không tìm thấy kết quả hoặc API hết hạn.");
-                    }
-                } catch (error) {
-                    console.error("Lỗi kết nối:", error);
-                }
+                    if(data.items) renderResults(data.items);
+                } catch (e) { console.error("Lỗi API"); }
             }
         }
 
@@ -118,10 +106,7 @@
         function playNow(id, title, thumb) {
             document.getElementById('playerSection').classList.remove('hidden');
             document.getElementById('vTitle').innerText = title;
-            
-            // Link Fix 100% của bạn
             document.getElementById('mainIframe').src = `https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`;
-            
             saveToHistory(id, title, thumb);
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
@@ -142,16 +127,14 @@
             }
             list.innerHTML = history.map(item => `
                 <div class="flex gap-3 items-center group bg-zinc-900/40 p-2 rounded-xl border border-transparent hover:border-purple-500/30 cursor-pointer transition-all" onclick="playNow('${item.id}', '${item.title.replace(/'/g, "")}', '${item.thumb}')">
-                    <div class="relative flex-shrink-0">
-                        <img src="${item.thumb}" class="w-20 aspect-video object-cover rounded-lg shadow-md">
-                    </div>
-                    <h4 class="text-[11px] font-semibold line-clamp-2 leading-tight text-zinc-300 group-hover:text-white">${item.title}</h4>
+                    <img src="${item.thumb}" class="w-20 aspect-video object-cover rounded-lg shadow-md">
+                    <h4 class="text-[11px] font-semibold line-clamp-2 text-zinc-300 group-hover:text-white">${item.title}</h4>
                 </div>
             `).join('');
         }
 
         function clearHistory() {
-            if(confirm("Xóa sạch lịch sử xem trên máy này?")) {
+            if(confirm("Xóa lịch sử xem?")) {
                 history = [];
                 localStorage.removeItem('tubeLinkHistory');
                 renderHistory();
@@ -164,16 +147,8 @@
             return (match && match[1]) ? match[1] : null;
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', e => { 
-            if(e.key === 'Enter') handleSearch(); 
-        });
-
-        window.onload = () => {
-            renderHistory();
-            // Tự động tìm kiếm mẫu để kiểm tra
-            document.getElementById('searchInput').value = "Minecraft sinh tồn";
-            handleSearch();
-        };
+        document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') handleSearch(); });
+        window.onload = () => { renderHistory(); handleSearch(); };
     </script>
 </body>
 </html>
