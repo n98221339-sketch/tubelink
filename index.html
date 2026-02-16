@@ -1,154 +1,447 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tube Link - Final Pro</title>
-    
+    <title>Tube Link - Ultimate History Manager</title>
+
     <link rel="icon" href="https://i.ibb.co/rRNhv33x/screenshot.png" type="image/png">
-    <link rel="shortcut icon" href="https://i.ibb.co/rRNhv33x/screenshot.png" type="image/png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
+
     <style>
-        body { background-color: #0a0a0a; color: #fff; scroll-behavior: smooth; font-family: sans-serif; }
-        .video-16-9 { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 15px; overflow: hidden; background: #000; }
-        .video-16-9 iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .purple-glow:focus-within { border-color: #9333ea; box-shadow: 0 0 15px rgba(147, 51, 234, 0.2); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 10px; }
-        .video-card:hover { transform: scale(1.02); transition: 0.3s; }
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            scroll-behavior: smooth;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .video-16-9 {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .video-16-9 iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-card {
+            transition: all 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-8px);
+        }
+
+        #authModal {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Hiệu ứng hiển thị nút xóa */
+        .history-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
     </style>
 </head>
+
 <body>
 
-    <nav class="fixed top-0 w-full bg-[#0a0a0a]/90 backdrop-blur-lg border-b border-zinc-800 flex items-center justify-between px-6 py-3 z-50">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-            <img src="https://i.ibb.co/rRNhv33x/screenshot.png" class="w-8 h-8 rounded-lg shadow-lg shadow-purple-500/20">
-            <span class="text-xl font-bold tracking-tighter text-purple-500">Tube Link</span>
+    <div id="authModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-[32px] w-full max-w-md shadow-2xl">
+            <div class="text-center mb-8">
+                <img src="https://i.ibb.co/rRNhv33x/screenshot.png"
+                    class="w-16 h-16 mx-auto mb-4 rounded-2xl shadow-lg">
+                <h2 id="authTitle" class="text-2xl font-bold text-white">Tube Link</h2>
+                <p id="authSub" class="text-zinc-500 text-sm mt-2">Đăng nhập để lưu dữ liệu cá nhân</p>
+            </div>
+            <div class="space-y-4">
+                <input id="authUser" type="text" placeholder="Tên người dùng..."
+                    class="w-full bg-black border border-zinc-700 p-4 rounded-2xl outline-none focus:border-purple-600 transition-all">
+                <input id="authPass" type="password" placeholder="Mật khẩu..."
+                    class="w-full bg-black border border-zinc-700 p-4 rounded-2xl outline-none focus:border-purple-600 transition-all">
+                <button onclick="handleAuth()" id="authBtn"
+                    class="w-full bg-purple-600 hover:bg-purple-700 p-4 rounded-2xl font-bold transition-all shadow-lg shadow-purple-900/30">Xác
+                    nhận</button>
+                <p class="text-center text-xs text-zinc-500 cursor-pointer hover:text-purple-400"
+                    onclick="toggleAuthMode()" id="authToggle">Chưa có tài khoản? Đăng ký</p>
+            </div>
+        </div>
+    </div>
+
+    <nav
+        class="fixed top-0 w-full bg-[#0a0a0a]/90 backdrop-blur-md border-b border-zinc-800/50 flex items-center justify-between px-6 py-4 z-50">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
+            <img src="https://i.ibb.co/rRNhv33x/screenshot.png" class="w-10 h-10 rounded-xl">
+            <span class="text-xl font-black tracking-tighter uppercase">Tube <span
+                    class="text-purple-500">Link</span></span>
         </div>
 
-        <div class="flex-1 max-w-[500px] mx-4 flex gap-2">
-            <div class="flex w-full bg-zinc-900 border border-zinc-700 rounded-full overflow-hidden purple-glow">
-                <input id="searchInput" type="text" placeholder="Tìm kiếm hoặc dán link video..." class="w-full bg-transparent py-2 px-5 outline-none text-sm">
-                <button onclick="handleSearch()" class="px-6 bg-zinc-800 hover:bg-purple-600 transition-colors">
-                    <i class="fas fa-search"></i>
-                </button>
+        <div class="flex-1 max-w-[500px] mx-4">
+            <div
+                class="flex bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden focus-within:border-purple-500 transition-all">
+                <input id="searchInput" type="text" placeholder="Tìm kiếm video..."
+                    class="w-full bg-transparent py-2 px-5 outline-none text-sm">
+                <button onclick="handleSearch()" class="px-5 text-zinc-500 hover:text-purple-500"><i
+                        class="fas fa-search"></i></button>
             </div>
         </div>
 
-        <div class="flex gap-4 items-center">
-            <button onclick="clearHistory()" class="text-[10px] uppercase font-bold text-zinc-500 hover:text-red-500 transition-colors">Xóa lịch sử</button>
-            <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold shadow-lg shadow-purple-500/20">TL</div>
+        <div class="flex items-center gap-4">
+            <span id="userNameDisplay" class="text-xs font-bold hidden sm:block"></span>
+
+            <label class="relative w-10 h-10 rounded-full cursor-pointer avatar-wrapper group">
+                <img id="userAvatar" src="https://ui-avatars.com/api/?name=TL&background=7c3aed&color=fff"
+                    class="w-full h-full rounded-full object-cover border-2 border-transparent group-hover:border-purple-500 transition-all">
+                <div
+                    class="avatar-overlay absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 transition-opacity">
+                    <i class="fas fa-camera text-[10px] text-white"></i>
+                </div>
+                <input type="file" class="hidden" accept="image/*" onchange="updateAvatar(this)">
+            </label>
+
+            <button onclick="logout()"
+                class="text-[10px] text-zinc-500 hover:text-red-500 font-bold uppercase">Thoát</button>
         </div>
     </nav>
 
-    <main class="pt-24 px-4 max-w-[1400px] mx-auto pb-20">
+    <main class="pt-28 px-6 max-w-[1400px] mx-auto pb-20">
         <div class="flex flex-col lg:flex-row gap-8">
+
             <div class="flex-1">
-                <div id="playerSection" class="hidden mb-10">
-                    <div class="video-16-9 shadow-2xl shadow-purple-900/40 border border-zinc-800">
+                <div id="playerSection" class="hidden mb-12">
+                    <div class="video-16-9 shadow-2xl border border-zinc-800">
                         <iframe id="mainIframe" src="" frameborder="0" allowfullscreen allow="autoplay"></iframe>
                     </div>
-                    <h1 id="vTitle" class="text-2xl font-bold mt-5 text-purple-400 leading-tight"></h1>
+                    <div class="mt-6 flex justify-between items-start">
+                        <div>
+                            <h1 id="vTitle" class="text-xl font-bold text-white mb-2"></h1>
+                            <p id="vMeta" class="text-xs text-zinc-500"></p>
+                        </div>
+                        <button onclick="switchServer()"
+                            class="bg-zinc-800 text-[10px] font-bold px-4 py-2 rounded-lg border border-zinc-700 hover:bg-zinc-700">
+                            <i class="fas fa-sync-alt mr-1"></i> ĐỔI SERVER
+                        </button>
+                    </div>
                 </div>
 
-                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-zinc-400">
-                    <i class="fas fa-search-plus text-purple-500"></i> Kết quả tìm kiếm
+                <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-1 h-6 bg-purple-500 rounded-full"></span> Khám phá Video
                 </h2>
-                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+
+                <div id="pagination" class="hidden mt-12 flex justify-center items-center gap-8">
+                    <button id="prevBtn" onclick="changePage('prev')"
+                        class="px-6 py-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-purple-600 disabled:opacity-20 transition-all"><i
+                            class="fas fa-arrow-left"></i></button>
+                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Trang tiếp theo</span>
+                    <button id="nextBtn" onclick="changePage('next')"
+                        class="px-6 py-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-purple-600 transition-all"><i
+                            class="fas fa-arrow-right"></i></button>
+                </div>
             </div>
 
-            <div class="w-full lg:w-80 border-l border-zinc-800 pl-4">
-                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-purple-500 border-b border-zinc-800 pb-2">
-                    <i class="fas fa-history"></i> Lịch sử xem
-                </h2>
-                <div id="historyList" class="space-y-4 max-h-[800px] overflow-y-auto pr-2"></div>
+            <div class="w-full lg:w-[350px] space-y-6">
+
+                <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px]">
+                    <h3 class="font-bold mb-4 flex justify-between items-center text-sm">
+                        <span>LỊCH SỬ XEM</span>
+                        <button onclick="clearWatchHistory()"
+                            class="text-[10px] text-zinc-600 hover:text-red-500 uppercase font-bold">Xóa hết</button>
+                    </h3>
+                    <div id="historyList" class="space-y-4"></div>
+                </div>
+
+                <div class="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[24px]">
+                    <h3 class="font-bold mb-4 flex justify-between items-center text-sm">
+                        <span>LỊCH SỬ TÌM KIẾM</span>
+                        <button onclick="clearSearchHistory()"
+                            class="text-[10px] text-zinc-600 hover:text-red-500 uppercase font-bold">Xóa hết</button>
+                    </h3>
+                    <div id="searchHistoryList" class="space-y-2"></div>
+                </div>
+
             </div>
         </div>
     </main>
 
     <script>
         const API_KEY = 'AIzaSyAhTnNe0-gj2Cua6e08JgbKPcXLsqM-tj0';
-        let history = JSON.parse(localStorage.getItem('tubeLinkHistory')) || [];
 
-        async function handleSearch() {
-            const q = document.getElementById('searchInput').value.trim();
-            if(!q) return;
-            const id = extractID(q);
-            if(id) {
-                playNow(id, "Video từ link dán", `https://img.youtube.com/vi/${id}/hqdefault.jpg`);
-            } else {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`;
-                try {
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if(data.items) renderResults(data.items);
-                } catch (e) { console.error("Lỗi API"); }
+        let currentUser = null;
+        let authMode = 'login';
+        let currentQuery = 'Minecraft';
+        let nextPageToken = '';
+        let prevPageTokens = [];
+        let currentVideoId = '';
+        let serverIndex = 0;
+
+        // --- AVATAR ---
+        function updateAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Img = e.target.result;
+                    document.getElementById('userAvatar').src = base64Img;
+                    if (currentUser) {
+                        let users = JSON.parse(localStorage.getItem('tl_users'));
+                        users[currentUser].avatar = base64Img;
+                        localStorage.setItem('tl_users', JSON.stringify(users));
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function renderResults(items) {
+        // --- SEARCH LOGIC ---
+        async function handleSearch(query = null, token = '') {
+            const q = query || document.getElementById('searchInput').value.trim();
+            if (!q) return;
+            currentQuery = q;
+
+            // Lưu lịch sử tìm kiếm (nếu là tìm mới)
+            if (!query && !token) saveSearchHistory(q);
+
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = Array(6).fill('<div class="skeleton aspect-video rounded-xl"></div>').join('');
+
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}&pageToken=${token}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error) {
+                    grid.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-red-500 font-bold mb-2">⚠️ Lỗi API Key</p><p class="text-zinc-500 text-xs">${data.error.message}</p></div>`;
+                    return;
+                }
+
+                if (data.items) {
+                    nextPageToken = data.nextPageToken || '';
+                    renderVideos(data.items);
+                    document.getElementById('pagination').classList.remove('hidden');
+                    document.getElementById('prevBtn').disabled = prevPageTokens.length === 0;
+                }
+            } catch (error) { grid.innerHTML = `<p class="text-zinc-600 col-span-full text-center">Lỗi kết nối mạng.</p>`; }
+        }
+
+        function renderVideos(items) {
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
             items.forEach(item => {
                 const id = item.id.videoId;
                 const sn = item.snippet;
                 grid.innerHTML += `
-                    <div class="video-card cursor-pointer group bg-zinc-900/30 rounded-xl p-2 hover:bg-zinc-800 transition-all" onclick="playNow('${id}', '${sn.title.replace(/'/g, "")}', '${sn.thumbnails.high.url}')">
-                        <img src="${sn.thumbnails.high.url}" class="rounded-lg aspect-video object-cover mb-3">
-                        <h3 class="text-sm font-bold line-clamp-2 group-hover:text-purple-400">${sn.title}</h3>
+                    <div class="video-card cursor-pointer group" onclick="playVideo('${id}', '${sn.title.replace(/'/g, "\\'")}')">
+                        <div class="relative aspect-video rounded-2xl overflow-hidden mb-3 border border-zinc-800">
+                            <img src="${sn.thumbnails.high.url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                        </div>
+                        <h3 class="text-sm font-bold line-clamp-2 text-zinc-200 group-hover:text-purple-500">${sn.title}</h3>
+                        <p class="text-[10px] text-zinc-500 mt-1">${sn.channelTitle}</p>
                     </div>`;
             });
         }
 
-        function playNow(id, title, thumb) {
+        function changePage(dir) {
+            if (dir === 'next') {
+                if (!nextPageToken) return;
+                prevPageTokens.push(nextPageToken);
+                handleSearch(currentQuery, nextPageToken);
+            } else {
+                prevPageTokens.pop();
+                const lastToken = prevPageTokens.length > 0 ? prevPageTokens[prevPageTokens.length - 1] : '';
+                handleSearch(currentQuery, lastToken);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function playVideo(id, title) {
+            currentVideoId = id;
+            serverIndex = 0;
             document.getElementById('playerSection').classList.remove('hidden');
             document.getElementById('vTitle').innerText = title;
-            document.getElementById('mainIframe').src = `https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`;
-            saveToHistory(id, title, thumb);
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            document.getElementById('mainIframe').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+            saveWatchHistory(id, title);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function saveToHistory(id, title, thumb) {
-            history = history.filter(item => item.id !== id);
-            history.unshift({ id, title, thumb });
-            if(history.length > 30) history.pop();
-            localStorage.setItem('tubeLinkHistory', JSON.stringify(history));
-            renderHistory();
+        function switchServer() {
+            const servers = [
+                `https://www.youtube.com/embed/${currentVideoId}?autoplay=1`,
+                `https://www.youtube-nocookie.com/embed/${currentVideoId}?autoplay=1`,
+                `https://p.drany.io/embed/${currentVideoId}`
+            ];
+            serverIndex = (serverIndex + 1) % servers.length;
+            document.getElementById('mainIframe').src = servers[serverIndex];
         }
 
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            if(history.length === 0) {
-                list.innerHTML = '<p class="text-zinc-600 text-xs italic text-center">Bạn chưa xem video nào.</p>';
-                return;
+        // --- AUTH & DATA MANAGEMENT ---
+        function handleAuth() {
+            const user = document.getElementById('authUser').value.trim();
+            const pass = document.getElementById('authPass').value.trim();
+            if (!user || !pass) return alert("Nhập đủ thông tin!");
+
+            let users = JSON.parse(localStorage.getItem('tl_users')) || {};
+            if (authMode === 'register') {
+                if (users[user]) return alert("Tên đã tồn tại!");
+                users[user] = { pass, watchHistory: [], searchHistory: [], avatar: null };
+                localStorage.setItem('tl_users', JSON.stringify(users));
+                alert("Đăng ký thành công!"); toggleAuthMode();
+            } else {
+                if (users[user] && users[user].pass === pass) {
+                    currentUser = user;
+                    localStorage.setItem('tl_current', user);
+                    initApp();
+                } else alert("Sai thông tin!");
             }
-            list.innerHTML = history.map(item => `
-                <div class="flex gap-3 items-center group bg-zinc-900/40 p-2 rounded-xl border border-transparent hover:border-purple-500/30 cursor-pointer transition-all" onclick="playNow('${item.id}', '${item.title.replace(/'/g, "")}', '${item.thumb}')">
-                    <img src="${item.thumb}" class="w-20 aspect-video object-cover rounded-lg shadow-md">
-                    <h4 class="text-[11px] font-semibold line-clamp-2 text-zinc-300 group-hover:text-white">${item.title}</h4>
+        }
+
+        function initApp() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('userNameDisplay').innerText = currentUser;
+            const users = JSON.parse(localStorage.getItem('tl_users'));
+            document.getElementById('userAvatar').src = users[currentUser].avatar || `https://ui-avatars.com/api/?name=${currentUser}&background=7c3aed&color=fff`;
+
+            renderWatchHistory();
+            renderSearchHistory();
+            handleSearch('Minecraft');
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'register' : 'login';
+            document.getElementById('authTitle').innerText = authMode === 'login' ? 'Tube Link' : 'Tạo tài khoản';
+            document.getElementById('authToggle').innerText = authMode === 'login' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập';
+        }
+
+        // --- WATCH HISTORY ---
+        function saveWatchHistory(id, title) {
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            let history = users[currentUser].watchHistory || [];
+            history = history.filter(v => v.id !== id);
+            history.unshift({ id, title });
+            users[currentUser].watchHistory = history.slice(0, 20);
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderWatchHistory();
+        }
+
+        function renderWatchHistory() {
+            const users = JSON.parse(localStorage.getItem('tl_users'));
+            const history = users[currentUser].watchHistory || [];
+            document.getElementById('historyList').innerHTML = history.length ? history.map(v => `
+                <div class="flex items-center gap-3 group relative history-item p-2 rounded-xl hover:bg-zinc-800 transition-colors">
+                    <div class="flex-1 cursor-pointer flex gap-3 items-center" onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}')">
+                        <img src="https://img.youtube.com/vi/${v.id}/default.jpg" class="w-12 rounded-lg">
+                        <p class="text-[10px] font-medium line-clamp-2 text-zinc-400 group-hover:text-purple-400">${v.title}</p>
+                    </div>
+                    <button onclick="deleteWatchItem('${v.id}')" class="delete-btn opacity-0 text-zinc-500 hover:text-red-500 p-2 transition-opacity"><i class="fas fa-times text-xs"></i></button>
                 </div>
-            `).join('');
+            `).join('') : '<p class="text-[10px] text-zinc-700 text-center">Trống</p>';
         }
 
-        function clearHistory() {
-            if(confirm("Xóa lịch sử xem?")) {
-                history = [];
-                localStorage.removeItem('tubeLinkHistory');
-                renderHistory();
-            }
+        function deleteWatchItem(id) {
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            users[currentUser].watchHistory = users[currentUser].watchHistory.filter(v => v.id !== id);
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderWatchHistory();
         }
 
-        function extractID(url) {
-            const reg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/;
-            const match = url.match(reg);
-            return (match && match[1]) ? match[1] : null;
+        function clearWatchHistory() {
+            if (!confirm("Xóa toàn bộ lịch sử xem?")) return;
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            users[currentUser].watchHistory = [];
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderWatchHistory();
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') handleSearch(); });
-        window.onload = () => { renderHistory(); handleSearch(); };
+        // --- SEARCH HISTORY ---
+        function saveSearchHistory(query) {
+            if (!currentUser) return;
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            let history = users[currentUser].searchHistory || [];
+            // Xóa trùng và đưa lên đầu
+            history = history.filter(q => q !== query);
+            history.unshift(query);
+            users[currentUser].searchHistory = history.slice(0, 10); // Lưu 10 cái gần nhất
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderSearchHistory();
+        }
+
+        function renderSearchHistory() {
+            if (!currentUser) return;
+            const users = JSON.parse(localStorage.getItem('tl_users'));
+            const history = users[currentUser].searchHistory || [];
+            document.getElementById('searchHistoryList').innerHTML = history.length ? history.map(q => `
+                <div class="flex justify-between items-center group history-item p-2 rounded-lg hover:bg-zinc-800 transition-colors">
+                    <span class="text-xs text-zinc-400 cursor-pointer hover:text-white" onclick="document.getElementById('searchInput').value='${q}'; handleSearch('${q}')">
+                        <i class="fas fa-clock mr-2 text-zinc-600"></i> ${q}
+                    </span>
+                    <button onclick="deleteSearchItem('${q}')" class="delete-btn opacity-0 text-zinc-600 hover:text-red-500 transition-opacity"><i class="fas fa-times text-[10px]"></i></button>
+                </div>
+            `).join('') : '<p class="text-[10px] text-zinc-700 text-center">Chưa có tìm kiếm nào</p>';
+        }
+
+        function deleteSearchItem(query) {
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            users[currentUser].searchHistory = users[currentUser].searchHistory.filter(q => q !== query);
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderSearchHistory();
+        }
+
+        function clearSearchHistory() {
+            if (!confirm("Xóa toàn bộ lịch sử tìm kiếm?")) return;
+            let users = JSON.parse(localStorage.getItem('tl_users'));
+            users[currentUser].searchHistory = [];
+            localStorage.setItem('tl_users', JSON.stringify(users));
+            renderSearchHistory();
+        }
+
+        function logout() { localStorage.removeItem('tl_current'); location.reload(); }
+        window.onload = () => {
+            const saved = localStorage.getItem('tl_current');
+            if (saved) { currentUser = saved; initApp(); }
+        };
+        document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') handleSearch(); });
     </script>
 </body>
+
 </html>
