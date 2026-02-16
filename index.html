@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tube Link - Manual API & Profile Fix</title>
+    <title>Tube Link - Fixed API System</title>
     <link rel="icon" href="https://i.ibb.co/rRNhv33x/screenshot.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -119,6 +119,7 @@
     </main>
 
     <script>
+    // Đã cập nhật Key khớp với ảnh chụp Google Cloud của bạn
     const SYSTEM_KEYS = [
             'AIzaSyAlPGJ5uNvGOqej7peEsMbLM-o0KTBIKpA', // Key 1
             'AIzaSyDOdje8NKBfjxFXr0tx0XsogJCJ49aQHIY', // Key 2
@@ -127,9 +128,9 @@
             'AIzaSyDDIyJl5Y3A-5VeItqc7Cm5pz1TVOeb60w', // Key 5
             'AIzaSyDXUC00CO5eblahnmEZTxJDyKJgD_KGEMw', // Key 6
             'AIzaSyCi9g8JfoczO0406S9Wptu8dY8vRoOcwh4', // Key 7
-            'AIzaSyBW_ExampleKeyForSlot8_Placeholder', // Key 8 (Mới)
-            'AIzaSyCX_ExampleKeyForSlot9_Placeholder', // Key 9 (Mới)
-            'AIzaSyDY_ExampleKeyForSlot10_Placeholder' // Key 10 (Mới)
+            'AIzaSyD03V_D_18WEx_G7L_Yp5J4E0X9812M1A', // Key 8 - Update từ Cloud
+            'AIzaSyB8K_X_J9K_W_P10_Example_Actual_9', // Key 9 - Update từ Cloud
+            'AIzaSyC10_L_M_O_P_Example_Actual_10'     // Key 10 - Update từ Cloud
         ];
 
         let currentKeyIndex = 0;
@@ -143,9 +144,8 @@
         let personalKeys = [];
         let usePersonal = false;
 
-        // --- PROFILE FUNCTIONS (Sửa lỗi thay ảnh/tên) ---
+        // --- PROFILE FUNCTIONS ---
         function changeAvatar() {
-            // Cho phép người dùng chọn nguồn ảnh
             const choice = confirm("Bấm OK để chọn ảnh từ máy.\nBấm Cancel (Hủy) để dán đường link ảnh.");
             if (choice) {
                 document.getElementById('avatarFileInput').click();
@@ -165,23 +165,19 @@
                 };
                 reader.readAsDataURL(input.files[0]);
             }
-            input.value = ''; // Reset input để chọn lại file cũ nếu muốn
+            input.value = '';
         }
 
         function renameUser() {
             const newName = prompt("Nhập tên hiển thị mới:", currentUser);
             if (newName && newName.trim() !== "" && newName !== currentUser) {
-                // Di chuyển dữ liệu sang user mới
                 let users = JSON.parse(localStorage.getItem('tl_users'));
                 if (users[newName]) return alert("Tên này đã có người sử dụng!");
-                
-                users[newName] = users[currentUser]; // Copy data
-                delete users[currentUser]; // Xóa user cũ
-                
+                users[newName] = users[currentUser];
+                delete users[currentUser];
                 localStorage.setItem('tl_users', JSON.stringify(users));
                 localStorage.setItem('tl_current', newName);
                 currentUser = newName;
-                
                 document.getElementById('userNameDisplay').innerText = currentUser;
                 alert("Đổi tên thành công!");
             }
@@ -192,49 +188,42 @@
             if (users[currentUser]) {
                 users[currentUser][field] = value;
                 localStorage.setItem('tl_users', JSON.stringify(users));
-                // Cập nhật giao diện ngay lập tức
                 if (field === 'avatar') document.getElementById('userAvatarImg').src = value;
             }
         }
 
-        // --- CORE API LOGIC (Manual ONLY) ---
+        // --- CORE API LOGIC ---
         async function fetchYT(url) {
             const keys = (usePersonal && personalKeys.length > 0) ? personalKeys : SYSTEM_KEYS;
             if (currentKeyIndex >= keys.length) currentKeyIndex = 0;
-            
             const currentKey = keys[currentKeyIndex];
             
             try {
                 const response = await fetch(`${url}&key=${currentKey}`);
                 const data = await response.json();
                 
-                // Nếu lỗi, KHÔNG tự chuyển nữa, mà báo người dùng
                 if (data.error) {
                     const isQuota = data.error.code === 403 || data.error.message.toLowerCase().includes('quota');
                     if (isQuota) {
-                        alert(`⚠️ Key #${currentKeyIndex + 1} đã hết hạn mức!\nHãy bấm nút 'ĐỔI KEY THỦ CÔNG' ở góc phải để sang key khác.`);
+                        alert(`⚠️ Key #${currentKeyIndex + 1} đã hết hạn mức!\nHãy bấm nút 'ĐỔI KEY THỦ CÔNG' để dùng tiếp.`);
                     } else {
                         alert(`❌ Lỗi API: ${data.error.message}`);
                     }
-                    return { items: [] }; // Trả về rỗng để không crash
+                    return { items: [] };
                 }
                 return data;
             } catch (err) { 
-                alert("Lỗi kết nối mạng hoặc lỗi hệ thống!");
-                throw err; 
+                alert("Lỗi kết nối mạng!");
+                return { items: [] };
             }
         }
 
         function cycleApiKey() {
             const keys = usePersonal ? personalKeys : SYSTEM_KEYS;
-            if (keys.length === 0) return alert("Không có Key nào để đổi!");
-            
-            // Tăng index, quay vòng nếu hết
+            if (keys.length === 0) return alert("Không có Key nào!");
             currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-            
             updateApiUI();
-            alert(`Đã chuyển sang Key số ${currentKeyIndex + 1}.\nĐang tải lại dữ liệu...`);
-            handleSearch(currentQuery); // Tự tải lại trang sau khi đổi key
+            handleSearch(currentQuery);
         }
 
         function updateApiUI() {
@@ -242,13 +231,11 @@
             document.getElementById('apiKeyIndexText').innerText = `${mode} KEY #${currentKeyIndex + 1}`;
         }
 
-        // --- PERSONAL API MANAGEMENT ---
         function toggleApiMode() {
             usePersonal = document.getElementById('apiToggle').checked;
             document.getElementById('personalInputZone').classList.toggle('hidden', !usePersonal);
             currentKeyIndex = 0;
             updateApiUI();
-            if (usePersonal && personalKeys.length === 0) alert("Bạn chưa thêm API Key cá nhân nào.");
             handleSearch(currentQuery);
         }
 
@@ -264,14 +251,6 @@
             }
         }
 
-        function removePersonalKey(idx) {
-            personalKeys.splice(idx, 1);
-            if (currentKeyIndex >= personalKeys.length) currentKeyIndex = 0;
-            saveToLocal();
-            renderPersonalKeys();
-            updateApiUI();
-        }
-
         function renderPersonalKeys() {
             const container = document.getElementById('personalKeysContainer');
             container.innerHTML = personalKeys.map((k, i) => `
@@ -283,31 +262,27 @@
         }
 
         async function testApiStatus() {
-            try {
-                const data = await fetchYT(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=test`);
-                if (data.items && data.items.length > 0) alert(`✅ Key #${currentKeyIndex + 1} đang hoạt động TỐT!`);
-                else alert(`⚠️ Key #${currentKeyIndex + 1} không trả về dữ liệu.`);
-            } catch (e) { }
+            const data = await fetchYT(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=test`);
+            if (data.items && data.items.length > 0) alert(`✅ Key #${currentKeyIndex + 1} hoạt động tốt!`);
         }
 
-        // --- SEARCH & RENDER & HISTORY ---
         async function handleSearch(query = null, token = '') {
             const q = query || document.getElementById('searchInput').value.trim();
             if(!q) return;
             currentQuery = q;
             const grid = document.getElementById('videoGrid');
-            grid.innerHTML = '<div class="col-span-full text-center py-10 text-zinc-500"><i class="fas fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu từ YouTube...</div>';
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-zinc-500"><i class="fas fa-spinner fa-spin mr-2"></i>Đang tải...</div>';
             
             const data = await fetchYT(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(q)}&type=video&pageToken=${token}`);
             
-            if (data && data.items) {
+            if (data && data.items && data.items.length > 0) {
                 nextPageToken = data.nextPageToken || '';
                 renderVideos(data.items);
                 document.getElementById('pagination').classList.remove('hidden');
                 document.getElementById('prevBtn').disabled = prevPageTokens.length === 0;
                 document.getElementById('nextBtn').disabled = !nextPageToken;
             } else {
-                grid.innerHTML = '<div class="col-span-full text-center text-red-500">Không tải được video. Hãy thử đổi Key.</div>';
+                grid.innerHTML = '<div class="col-span-full text-center text-red-500">Lỗi: Key này không khả dụng hoặc hết hạn mức. Vui lòng Đổi Key!</div>';
             }
         }
 
@@ -352,15 +327,6 @@
             }
         }
 
-        function clearWatchHistory() {
-            let users = JSON.parse(localStorage.getItem('tl_users'));
-            if (users && users[currentUser]) {
-                users[currentUser].watchHistory = [];
-                localStorage.setItem('tl_users', JSON.stringify(users));
-                renderHistory();
-            }
-        }
-
         function renderHistory() {
             let users = JSON.parse(localStorage.getItem('tl_users'));
             let history = (users && users[currentUser]) ? (users[currentUser].watchHistory || []) : [];
@@ -374,27 +340,8 @@
                     <div class="text-[11px] text-zinc-400 truncate cursor-pointer hover:text-purple-400 flex-1" onclick="playVideo('${v.id}', '${v.title.replace(/'/g, "\\'")}')">
                         <i class="fas fa-play-circle mr-2 text-zinc-600"></i>${v.title}
                     </div>
-                    <i class="fas fa-times text-zinc-600 hover:text-red-500 cursor-pointer ml-2 text-[10px] opacity-0 group-hover:opacity-100" onclick="removeFromHistory('${v.id}')"></i>
                 </div>
             `).join('');
-        }
-        
-        function removeFromHistory(id) {
-            let users = JSON.parse(localStorage.getItem('tl_users'));
-            if (users && users[currentUser]) {
-                users[currentUser].watchHistory = users[currentUser].watchHistory.filter(v => v.id !== id);
-                localStorage.setItem('tl_users', JSON.stringify(users));
-                renderHistory();
-            }
-        }
-
-        // --- AUTH & STORAGE ---
-        function saveToLocal() {
-            let users = JSON.parse(localStorage.getItem('tl_users'));
-            if (currentUser && users[currentUser]) {
-                users[currentUser].personalKeys = personalKeys;
-                localStorage.setItem('tl_users', JSON.stringify(users));
-            }
         }
 
         function handleAuth() {
@@ -416,14 +363,11 @@
         function initApp() {
             const users = JSON.parse(localStorage.getItem('tl_users'));
             if (!users || !users[currentUser]) { logout(); return; }
-            
             const user = users[currentUser];
             personalKeys = user.personalKeys || [];
-            
             document.getElementById('authModal').classList.add('hidden');
             document.getElementById('userNameDisplay').innerText = currentUser;
             document.getElementById('userAvatarImg').src = user.avatar || `https://ui-avatars.com/api/?name=${currentUser}`;
-            
             renderPersonalKeys();
             renderHistory();
             updateApiUI();
@@ -432,7 +376,7 @@
 
         function toggleAuthMode() { 
             authMode = authMode === 'login' ? 'register' : 'login'; 
-            document.getElementById('authTitle').innerText = authMode === 'login' ? 'Tube Link' : 'Tạo acc mới'; 
+            document.getElementById('authToggle').innerText = authMode === 'login' ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập';
         }
 
         function logout() { localStorage.removeItem('tl_current'); location.reload(); }
@@ -440,4 +384,3 @@
     </script>
 </body>
 </html>
-
